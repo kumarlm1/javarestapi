@@ -3,5 +3,6 @@ demo\login.class
 demo\expense.class
 demo\expenses.class
 demo\expense$1.class
+demo\analytics.class
 demo\user.class
 demo\CorsFilter.class

@@ -26,7 +26,7 @@ public class analytics {
    public Response get(){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = " select sum(total) as total,(select name from user where uid = id) as name from expense where uid in (select id from user) group by uid order by sum(total) desc";
+	    String query = "select sum(total) as total,currency from expense group by currency";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		ResultSet rs =pd.executeQuery();
 		
