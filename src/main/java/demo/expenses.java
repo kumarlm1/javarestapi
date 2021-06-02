@@ -14,6 +14,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -35,43 +36,70 @@ public class expenses {
 		conn = con.getconn();
 }
 
-	@Path("/{uid}")
-	 @PUT 
+	   @Path("/{id}")
+	   @GET
 	   @Produces("application/json")
-	   @Consumes("application/json")
-	 public JSONObject requestLogin(String str) {
-	JSONObject obj = new JSONObject(str);
-	JSONArray s= (JSONArray) obj.get("expense_item") ;
-
-	 
-	 System.out.println(s.get(0));
-	return obj;
-	
-	
-		  
-//	     try {
-//	      	 String query = "update user set name = ?,role =? where id = ?";
-//				java.sql.PreparedStatement pd= conn.prepareStatement(query);
-//				pd.setString(1,name);
-//			    pd.setString(2,role);
-//			    pd.setInt(3,id);
-//			    pd.execute();
-//			    
-//			    if(pd.getUpdateCount() > 0)
-//			    result.put("status","success");
-//			    else
-//			    result.put("status","error");
-//				return result;
-//	       }
-//	       catch(SQLException e) {
-//	    	   e.printStackTrace();
-//	    	   result.put("status",e.toString());
-//	      	 return result;
-//	       }
+	   public Response get(@PathParam("id") int id){
+			JSONObject result=new JSONObject();
+		   try {
+		    String query = "select * from expense where uid = ?";
+			java.sql.PreparedStatement pd= conn.prepareStatement(query);
+			pd.setInt(1, id);
+			ResultSet rs =pd.executeQuery();
+			JSONArray js1;
+			js1 =convert(rs);
+			if(js1 != null) {
+				result.put("status","success");
+				result.put("data",js1);
+				return Response.ok()
+			               .entity(result.toString())
+			               .header("Access-Control-Allow-Origin", "*")
+			               .build();
+			}
+			else {
+				result.put("status","invalid_user");
+				return Response.ok()
+			               .entity(result.toString())
+			               .header("Access-Control-Allow-Origin", "*")
+			               .build();}
+				}
+		   catch (Exception e) {
+			   result.put("status",e.toString());
+			   return Response.ok()
+		               .entity(result.toString())
+		               .header("Access-Control-Allow-Origin", "*")
+		               .build();
+		}
+		}
+	   
+	   
+	   public static JSONArray convert(ResultSet resultSet) throws Exception {
 		   
-	   }
-	      
+		    JSONArray jsonArrays = new JSONArray();
+		  
+		 
+		    while (resultSet.next()) {
 
+		 
+		        int columns = resultSet.getMetaData().getColumnCount();
+		        JSONObject obj = new JSONObject();
+		        
+		 
+		        for (int i = 0; i < columns; i++) {
+		        	 
+		             obj.put(resultSet.getMetaData().getColumnLabel(i + 1).toLowerCase(), resultSet.getObject(i + 1));
+		            
+		    }
+		        jsonArrays.put(obj);
+		        System.out.println(jsonArrays.toString());
+		        
+		    }
+		    
+		    return jsonArrays;
+		    
+		 
+		   
+		}
 	
 	
 	

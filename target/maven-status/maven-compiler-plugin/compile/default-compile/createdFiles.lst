@@ -1,6 +1,7 @@
 demo\databaseconn.class
 demo\login.class
-demo\user.class
-demo\CorsFilter.class
 demo\expense.class
 demo\expenses.class
+demo\expense$1.class
+demo\user.class
+demo\CorsFilter.class

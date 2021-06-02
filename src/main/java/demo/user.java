@@ -88,14 +88,14 @@ public class user {
 	   String name = json.get("name").toString();
        String role = json.get("role").toString();
        String email =json.get("email").toString();
-      int phone = Integer.valueOf(json.get("phone").toString());
+       String phone= json.get("phone").toString(); 
       try {
       	 String query = "insert into user(name,email,role,phone) values(?,?,?,?)";
 			java.sql.PreparedStatement pd= conn.prepareStatement(query);
 			pd.setString(1,name);
 			pd.setString(2,email);
 			pd.setString(3,role);
-			pd.setInt(4, phone);
+			pd.setString(4, phone);
 			pd.execute();
 		    result.put("status","success");
 		    return Response.ok()
@@ -124,13 +124,15 @@ public class user {
 	   JSONObject result = new JSONObject();
 	   String name = json.get("name").toString();
        String role = json.get("role").toString();
+       String phone= json.get("phone").toString(); 
        
      try {
-      	 String query = "update user set name = ?,role =? where id = ?";
+      	 String query = "update user set name = ?,role =?,phone=? where id = ?";
 			java.sql.PreparedStatement pd= conn.prepareStatement(query);
 			pd.setString(1,name);
 		    pd.setString(2,role);
-		    pd.setInt(3,id);
+		    pd.setString(3,phone);
+		    pd.setInt(4,id);
 		    pd.execute();
 		    
 		    if(pd.getUpdateCount() > 0)
@@ -177,8 +179,8 @@ public class user {
 	               .entity(result)
 	               .build();
 		   
-	} catch (Exception e) {
-		result.put("status","invalid_user");
+	} catch (SQLException e) {
+		result.put("status","You have expense!!");
 		 return Response.ok()
 	               .entity(result)
 	               .build();

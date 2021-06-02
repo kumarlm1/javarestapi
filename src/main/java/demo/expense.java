@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -61,7 +62,7 @@ public class expense {
 		               .build();
 		}
 		else {
-			result.put("status","invalid_user");
+			result.put("status","invalid_item");
 			return Response.ok()
 		               .entity(result.toString())
 		               .header("Access-Control-Allow-Origin", "*")
@@ -83,6 +84,7 @@ public class expense {
 	   @Produces("application/json")
 	   @Consumes("application/json")
 	 public Response requestLogin1(@PathParam("uid") int uid,String str) {
+		   System.out.println(str);
 		   JSONObject result = new JSONObject();
 		
 		   JSONObject obj = new JSONObject(str);
@@ -90,13 +92,14 @@ public class expense {
 	       String customer = obj.getString("customer");
 	       String date = obj.getString("date").toString();
 	      int refno = obj.getInt("refno");
+	      int total = obj.getInt("total");
 	     try {
-	      	String query = "insert into expense(currency,customer,date,refno,uid) values(?,?,?,?,?)";
+	      	String query = "insert into expense(currency,customer,date,refno,uid,total) values(?,?,?,?,?,?)";
 	        java.sql.PreparedStatement pd= conn.prepareStatement(query);
 				pd.setString(1,currency);pd.setString(2,customer);
 				pd.setString(3,date);pd.setInt(4, refno);
-				pd.setInt(5,uid);
-				//int rs=pd.executeUpdate();
+				pd.setInt(5,uid);pd.setInt(6,total);
+				int rs=pd.executeUpdate();
 		    String query1 = "select max(id) from expense";
 		    java.sql.PreparedStatement pd1= conn.prepareStatement(query1);
 		    ResultSet rs1 = pd1.executeQuery();rs1.next();
@@ -150,18 +153,34 @@ public class expense {
 	       String customer = obj.getString("customer");
 	       String date = obj.getString("date").toString();
 	      int refno = obj.getInt("refno");
+	      int total = obj.getInt("total");
 	     try {
-	      	String query = "update expense set currency=?,customer=?,date=?,refno=? where id = ?";
+	      	String query = "update expense set currency=?,customer=?,date=?,refno=?,total=? where id = ?";
 	        java.sql.PreparedStatement pd= conn.prepareStatement(query);
 				pd.setString(1,currency);pd.setString(2,customer);
 				pd.setString(3,date);pd.setInt(4, refno);
-				pd.setInt(5,id);
+				pd.setInt(5,total);
+				pd.setInt(6,id);
 				int rs=pd.executeUpdate();
+				
+				query = "select id from expense_item where eid = ?";
+		      pd= conn.prepareStatement(query);
+				pd.setInt(1,id);
+				ArrayList<Integer> childs = new ArrayList(){}; 
+			ResultSet rs1 =pd.executeQuery();
+			while(rs1.next()) {
+				childs.add(rs1.getInt("id"));
+			}
+				
+	    			
+			System.out.println(childs);	
+				
 		    JSONArray s= (JSONArray) obj.get("expense_item") ;
 		    for (int i=0; i<s.length(); i++) {
 		    	 JSONObject dat = s.getJSONObject(i);
 		    	 System.out.println(dat.getInt("amount"));
 		    	 int ids = dat.getInt("id");
+		    	 childs.remove(new Integer(ids));
 		    	 try {
 		    	  query = "update expense_item set category=?,description=?,amount=? where id = ?";
 	              pd= conn.prepareStatement(query);
@@ -170,11 +189,28 @@ public class expense {
 			      pd.setInt(3,dat.getInt("amount"));
 		          pd.setInt(4,ids);
 		          pd.executeUpdate();
+		          
+		         
+		          
+		          
+		          
 		    	 }
 		    	 catch(SQLException e) {
 		    		 e.printStackTrace();
 		    	 }
 		      }
+		    for(int j=0;j<childs.size();j++) {
+		    	try {
+			    	  query = "delete from expense_item where id = ?";
+		              pd= conn.prepareStatement(query);
+			          pd.setInt(1,childs.get(j));
+			          pd.executeUpdate();
+			          }
+			    	 catch(SQLException e) {
+			    		 e.printStackTrace();
+			    	 }
+	          }
+		    
 		      result.put("status","success");
 		      return Response.ok()
 		               .entity(result.toString())
@@ -191,7 +227,31 @@ public class expense {
 			               .build();
 	      	 }
 	 }
-	      
+	   @Path("/{id}")
+	   @DELETE
+	   @Produces("application/json")
+	   public Response delete(@PathParam("id") int id){
+			JSONObject result = new JSONObject();
+		   try {
+		    String query = "delete from expense where id =?";
+			java.sql.PreparedStatement pd= conn.prepareStatement(query);
+			pd.setInt(1, id);
+			pd.execute();
+			
+			result.put("status","success");
+		   System.out.println(result.get("status"));
+
+			 return Response.ok()
+		               .entity(result.toString())
+		               .build();
+			   
+		} catch (Exception e) {
+			result.put("status","invalid_user");
+			 return Response.ok()
+		               .entity(result.toString())
+		               .build();
+		}
+	   }       
 	   
  public static JSONArray convert(ResultSet resultSet,ResultSet resultSet1) throws Exception {
 		   
