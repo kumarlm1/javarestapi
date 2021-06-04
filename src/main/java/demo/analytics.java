@@ -26,7 +26,7 @@ public class analytics {
    public Response get(){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = "select sum(total) as total,currency from expense group by currency";
+	    String query = " select sum(total) as total,(select code from currency where id = cid) as currency from expense group by cid;";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		ResultSet rs =pd.executeQuery();
 		
@@ -37,7 +37,7 @@ public class analytics {
 			result.put("data",js);
 			 return Response.ok()
 		               .entity(result.toString())
-		               .header("Access-Control-Allow-Origin", "*")
+		             
 		            
 		               .build();
 		}
@@ -45,7 +45,7 @@ public class analytics {
 			 result.put("status","error");
 			 return Response.ok()
 		               .entity(result.toString())
-		               .header("Access-Control-Allow-Origin", "*")
+		  
 		           
 		               .build();
 		}
@@ -54,7 +54,48 @@ public class analytics {
 		result.put("status",e.toString());
 		 return Response.ok()
 	               .entity(result.toString())
-	               .header("Access-Control-Allow-Origin", "*")
+	            
+	             
+	               .build();
+	}
+	   
+   }
+   @Path("/{id}")
+   @GET
+   @Produces("application/json")
+   public Response get_by_user(@PathParam("id") int id){
+		JSONObject result = new JSONObject();
+	   try {
+	    String query = "  select sum(total) as total ,(select code from currency where id = cid) as currency from expense where uid = ? group by cid";
+		java.sql.PreparedStatement pd= conn.prepareStatement(query);
+		pd.setInt(1, id);
+		ResultSet rs =pd.executeQuery();
+		
+		JSONArray js;
+		js = convert(rs);
+		if(js != null) {
+			result.put("status","success");
+			result.put("data",js);
+			 return Response.ok()
+		               .entity(result.toString())
+		             
+		            
+		               .build();
+		}
+		else {
+			 result.put("status","error");
+			 return Response.ok()
+		               .entity(result.toString())
+		  
+		           
+		               .build();
+		}
+			
+	 }catch (Exception e) {
+		result.put("status",e.toString());
+		 return Response.ok()
+	               .entity(result.toString())
+	            
 	             
 	               .build();
 	}

@@ -1,8 +1,14 @@
-demo\databaseconn.class
-demo\login.class
-demo\expense.class
 demo\expenses.class
+demo\category.class
 demo\expense$1.class
 demo\analytics.class
+demo\merchant$1.class
 demo\user.class
 demo\CorsFilter.class
+demo\databaseconn.class
+demo\category$1.class
+demo\login.class
+demo\expense.class
+demo\currency$1.class
+demo\merchant.class
+demo\currency.class

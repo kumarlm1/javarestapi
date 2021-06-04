@@ -43,16 +43,17 @@ public class expense {
    public Response get(@PathParam("id") int id){
 		JSONObject result=new JSONObject();
 	   try {
-	    String query = "select * from expense_item where eid = ?";
+	    String query = " select *,(select code from currency where id = cid) as currency,(select name from merchant where id = mid)"
+	    		+ " as customer from expense where id = ?;";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		pd.setInt(1, id);
 		ResultSet rs =pd.executeQuery();
-		String query1 = "select * from expense where id = ?";
+		String query1 = "select * from expense_item where eid = ?";
 		java.sql.PreparedStatement pd1= conn.prepareStatement(query1);
 		pd1.setInt(1, id);
 		ResultSet rs1 =pd1.executeQuery();
 		JSONArray js1;
-		js1 =convert(rs1,rs);
+		js1 =convert(rs,rs1);
 		if(js1 != null) {
 			result.put("status","success");
 			result.put("data",js1);
@@ -89,20 +90,34 @@ public class expense {
 		
 		   JSONObject obj = new JSONObject(str);
 	      String currency = obj.getString("currency");
-	       String customer = obj.getString("customer");
+	       String merchant = obj.getString("customer");
 	       String date = obj.getString("date").toString();
-	      int refno = obj.getInt("refno");
+	      String refno = obj.getString("refno");
 	      int total = obj.getInt("total");
 	     try {
-	      	String query = "insert into expense(currency,customer,date,refno,uid,total) values(?,?,?,?,?,?)";
-	        java.sql.PreparedStatement pd= conn.prepareStatement(query);
-				pd.setString(1,currency);pd.setString(2,customer);
-				pd.setString(3,date);pd.setInt(4, refno);
-				pd.setInt(5,uid);pd.setInt(6,total);
-				int rs=pd.executeUpdate();
+	    	 String  query = "select id from currency where code = ?";
+	    java.sql.PreparedStatement  pd = conn.prepareStatement(query);
+			  pd.setString(1,currency);
+			  ResultSet  rs1 = pd.executeQuery();rs1.next();
+			  int cid = rs1.getInt("id");
+			  
+			  query = "select id from merchant where name = ?";
+			  pd = conn.prepareStatement(query);
+			  pd.setString(1,merchant);
+			  rs1 = pd.executeQuery();rs1.next();
+			  int mid = rs1.getInt("id");
+			  
+	      	query = "insert into expense(date,refno,uid,total,cid,mid) values(?,?,?,?,?,?)";
+	      pd= conn.prepareStatement(query);
+				
+				pd.setString(1,date);pd.setString(2, refno);
+				pd.setInt(3,uid);pd.setInt(4,total);
+				pd.setInt(5,cid);pd.setInt(6,mid);
+			pd.execute();
+				
 		    String query1 = "select max(id) from expense";
 		    java.sql.PreparedStatement pd1= conn.prepareStatement(query1);
-		    ResultSet rs1 = pd1.executeQuery();rs1.next();
+		    rs1 = pd1.executeQuery();rs1.next();
 		    int id = rs1.getInt(1);
 		    
 		    JSONArray s= (JSONArray) obj.get("expense_item") ;
@@ -152,22 +167,34 @@ public class expense {
 	      String currency = obj.getString("currency");
 	       String customer = obj.getString("customer");
 	       String date = obj.getString("date").toString();
-	      int refno = obj.getInt("refno");
+	      String refno = obj.getString("refno");
 	      int total = obj.getInt("total");
 	     try {
-	      	String query = "update expense set currency=?,customer=?,date=?,refno=?,total=? where id = ?";
-	        java.sql.PreparedStatement pd= conn.prepareStatement(query);
-				pd.setString(1,currency);pd.setString(2,customer);
-				pd.setString(3,date);pd.setInt(4, refno);
-				pd.setInt(5,total);
-				pd.setInt(6,id);
-				int rs=pd.executeUpdate();
-				
-				query = "select id from expense_item where eid = ?";
-		      pd= conn.prepareStatement(query);
-				pd.setInt(1,id);
+	    	 String query = "select id from currency where code = ?";
+	    	  java.sql.PreparedStatement  pd1 = conn.prepareStatement(query);
+			  pd1.setString(1,currency);
+			  ResultSet rs2  = pd1.executeQuery();rs2.next();
+			  int cid = rs2.getInt("id");
+			  
+			  query = "select id from merchant where name = ?";
+			  pd1 = conn.prepareStatement(query);
+			  pd1.setString(1,customer);
+			  rs2 = pd1.executeQuery();rs2.next();
+			  int mid = rs2.getInt("id");
+			  
+	      	 query = "update expense set date=?,refno=?,total=?,cid=?,mid=? where id = ?";
+	       pd1= conn.prepareStatement(query);
+				pd1.setString(1,date);pd1.setString(2, refno);
+				pd1.setInt(3,total);
+				pd1.setInt(4,cid);
+				pd1.setInt(5,mid);pd1.setInt(6,id);
+				int rs=pd1.executeUpdate();
+	
+	       query = "select id from expense_item where eid = ?";
+		      pd1= conn.prepareStatement(query);
+				pd1.setInt(1,id);
 				ArrayList<Integer> childs = new ArrayList(){}; 
-			ResultSet rs1 =pd.executeQuery();
+			ResultSet rs1 =pd1.executeQuery();
 			while(rs1.next()) {
 				childs.add(rs1.getInt("id"));
 			}
@@ -183,12 +210,12 @@ public class expense {
 		    	 childs.remove(new Integer(ids));
 		    	 try {
 		    	  query = "update expense_item set category=?,description=?,amount=? where id = ?";
-	              pd= conn.prepareStatement(query);
-	              pd.setString(1,dat.getString("category"));
-			      pd.setString(2,dat.getString("description"));
-			      pd.setInt(3,dat.getInt("amount"));
-		          pd.setInt(4,ids);
-		          pd.executeUpdate();
+	              pd1= conn.prepareStatement(query);
+	              pd1.setString(1,dat.getString("category"));
+			      pd1.setString(2,dat.getString("description"));
+			      pd1.setInt(3,dat.getInt("amount"));
+		          pd1.setInt(4,ids);
+		          pd1.executeUpdate();
 		          
 		         
 		          
@@ -202,9 +229,9 @@ public class expense {
 		    for(int j=0;j<childs.size();j++) {
 		    	try {
 			    	  query = "delete from expense_item where id = ?";
-		              pd= conn.prepareStatement(query);
-			          pd.setInt(1,childs.get(j));
-			          pd.executeUpdate();
+		              pd1= conn.prepareStatement(query);
+			          pd1.setInt(1,childs.get(j));
+			          pd1.executeUpdate();
 			          }
 			    	 catch(SQLException e) {
 			    		 e.printStackTrace();

@@ -42,7 +42,8 @@ public class expenses {
 	   public Response get(@PathParam("id") int id){
 			JSONObject result=new JSONObject();
 		   try {
-		    String query = "select * from expense where uid = ?";
+		    String query = " select *,(select code from currency where id = cid) as currency,(select name from merchant where id = mid)"
+		    		+ " as customer from expense where uid = ? order by id";
 			java.sql.PreparedStatement pd= conn.prepareStatement(query);
 			pd.setInt(1, id);
 			ResultSet rs =pd.executeQuery();

@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.sql.rowset.CachedRowSet;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -17,9 +18,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
-import org.json.simple.JSONArray;
+//import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-//import org.json.JSONArray;
+import org.json.JSONArray;
 
 import com.mysql.jdbc.PreparedStatement;
 
@@ -40,19 +41,37 @@ public class user {
    public Response get(@PathParam("id") int id){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = "select * from user where id = ?";
+	    String query = "select *,if(STRCMP(role,'Admin'),false,true) as isadmin from user where id = ?";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		pd.setInt(1, id);
 		ResultSet rs =pd.executeQuery();
-		
+		ResultSet rs1 = rs;
+		rs1.next();
+	    int isadmin = rs1.getInt("isadmin");
+	    rs1.beforeFirst();
+	    System.out.println(isadmin);
 		JSONObject js;
 		js =convert(rs);
+		
+	    JSONArray users = new JSONArray();	 
+		if(isadmin == 1) {
+			query = "select name,role,phone from user where id != ?";
+	        pd= conn.prepareStatement(query);
+			pd.setInt(1, id);
+			ResultSet rs2 =pd.executeQuery();
+			 
+			users = convert_array(rs2);
+			
+		}	
+		
+		
 		if(js != null) {
 			result.put("status","success");
 			result.put("data",js);
-			 return Response.ok()
-		               .entity(result)
-		               .header("Access-Control-Allow-Origin", "*")
+			result.put("users", users);
+			return Response.ok()
+		               .entity(result.toString())
+		             
 		            
 		               .build();
 		}
@@ -60,7 +79,7 @@ public class user {
 			 result.put("status","invalid_user");
 			 return Response.ok()
 		               .entity(result)
-		               .header("Access-Control-Allow-Origin", "*")
+		              
 		           
 		               .build();
 		}
@@ -69,7 +88,7 @@ public class user {
 		result.put("status",e.toString());
 		 return Response.ok()
 	               .entity(result)
-	               .header("Access-Control-Allow-Origin", "*")
+	             
 	             
 	               .build();
 	}
@@ -141,9 +160,7 @@ public class user {
 		    result.put("status","error");
 		    return Response.ok()
 		               .entity(result)
-		               .header("Access-Control-Allow-Origin", "*")
-		               .header("Access-Control-Allow-Methods", "*")
-		               .header("Access-Control-Allow-Headers", "*/*")
+		               
 		               .build();
        }
        catch(SQLException e) {
@@ -151,9 +168,7 @@ public class user {
     	   result.put("status",e.toString());
     	   return Response.ok()
 	               .entity(result)
-	               .header("Access-Control-Allow-Origin", "*")
-	               .header("Access-Control-Allow-Methods", "*")
-	               .header("Access-Control-Allow-Headers", "*/*")
+	               
 	               .build();
        }
 	   
@@ -198,12 +213,41 @@ public class user {
 	        for (int i = 0; i < columns; i++)
 	            obj.put(resultSet.getMetaData().getColumnLabel(i + 1).toLowerCase(), resultSet.getObject(i + 1));
 	    	
+	        System.out.println(obj.toString());
 	        return obj;
 	    }
 	  
 	   return null;
 	 
 	}
+   public static JSONArray convert_array(ResultSet resultSet) throws Exception {
+	   
+	    JSONArray jsonArrays = new JSONArray();
+	    
+	 
+	    while (resultSet.next()) {
+
+	 
+	        int columns = resultSet.getMetaData().getColumnCount();
+	        JSONObject obj = new JSONObject();
+	        
+	 
+	        for (int i = 0; i < columns; i++) {
+	        	 
+	             obj.put(resultSet.getMetaData().getColumnLabel(i + 1).toLowerCase(), resultSet.getObject(i + 1));
+	            
+	    }
+	        jsonArrays.put(obj);
+	        System.out.println(jsonArrays.toString());
+	        
+	    }
+	    
+	    return jsonArrays;
+	    
+	 
+	   
+	}
+
  
    
    
