@@ -26,7 +26,7 @@ public class analytics {
    public Response get(){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = " select sum(total) as total,(select code from currency where id = cid) as currency from expense group by cid;";
+	    String query = " select sum(total) as total,(select name from currency where id = cid) as currency from expense group by cid";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		ResultSet rs =pd.executeQuery();
 		
@@ -66,7 +66,7 @@ public class analytics {
    public Response get_by_user(@PathParam("id") int id){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = "  select sum(total) as total ,(select code from currency where id = cid) as currency from expense where uid = ? group by cid";
+	    String query = "  select sum(total) as total ,(select name from currency where id = cid) as currency from expense where uid = ? group by cid";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		pd.setInt(1, id);
 		ResultSet rs =pd.executeQuery();

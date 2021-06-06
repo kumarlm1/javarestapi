@@ -84,7 +84,7 @@ public class currency {
    public Response getall(){
 		JSONObject result = new JSONObject();
 	   try {
-	    String query = "select * from currency";
+	    String query = "select id,name,symbol as code from currency";
 		java.sql.PreparedStatement pd= conn.prepareStatement(query);
 		ResultSet rs =pd.executeQuery();
 		
@@ -133,7 +133,7 @@ public class currency {
        String des = json.get("code").toString();
      
       try {
-      	 String query = "insert into currency(name,code) values(?,?)";
+      	 String query = "insert into currency(name,symbol) values(?,?)";
 			java.sql.PreparedStatement pd= conn.prepareStatement(query);
 			pd.setString(1,name);
 			pd.setString(2,des);
@@ -187,7 +187,7 @@ public class currency {
 	    	 int ids = dat.getInt("id");
 	    	 childs.remove(new Integer(ids));
 	    	 try {
-	    	  query = "update currency set code=?,name=? where id = ?";
+	    	  query = "update currency set symbol=?,name=? where id = ?";
              pd1= conn.prepareStatement(query);
              pd1.setString(1,dat.getString("code"));
 		      pd1.setString(2,dat.getString("name"));
