@@ -141,7 +141,7 @@ public class currency {
 			pd.execute();
 		    result.put("status","success");
 		    return Response.ok()
-		               .entity(result)
+		               .entity(result.toString())
 		            
 		               
 		               .build();
@@ -151,7 +151,7 @@ public class currency {
     	   e.printStackTrace();
     		result.put("status","error_duplicate_keys");
     		 return Response.ok()
-		               .entity(result)
+		               .entity(result.toString())
 		               
 		               .build();
        }

@@ -139,7 +139,7 @@ public class category {
 			pd.execute();
 		    result.put("status","success");
 		    return Response.ok()
-		               .entity(result)
+		               .entity(result.toString())
 		            
 		               
 		               .build();
@@ -149,7 +149,7 @@ public class category {
     	   e.printStackTrace();
     		result.put("status","error_duplicate_keys");
     		 return Response.ok()
-		               .entity(result)
+		               .entity(result.toString())
 		               
 		               .build();
        }
@@ -213,7 +213,7 @@ public class category {
       catch(SQLException e) {
     	  
     	  e.printStackTrace();
-    	  result.put("status","error");
+    	  result.put("status","Have Expenses!!");
     	  return Response.ok()
 	               .entity(result.toString())
 	               .header("Access-Control-Allow-Origin", "*")
